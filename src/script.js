@@ -386,54 +386,90 @@ class PrivacyBrowser {
                     return;
                 }
                 
-                // For web mode, load in iframe
+                // For web mode, load in iframe with better error handling
                 const contentArea = document.getElementById('content-area');
                 console.log('Loading URL in iframe:', url);
                 
-                // Show loading indicator first
-                contentArea.innerHTML = `
-                    <div style="padding: 20px; text-align: center;">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Loading ${url}...</p>
-                    </div>
-                `;
+                // Check if it's a known problematic domain
+                const blockedDomains = ['google.com', 'youtube.com', 'facebook.com', 'twitter.com', 'instagram.com', 'linkedin.com'];
+                const isBlockedDomain = blockedDomains.some(domain => url.includes(domain));
                 
-                // Load the website in an iframe after a brief delay
-                setTimeout(() => {
-                    const iframeId = 'iframe-' + Date.now();
+                if (isBlockedDomain) {
+                    // Show immediate fallback for known blocked domains
                     contentArea.innerHTML = `
-                        <iframe 
-                            id="${iframeId}"
-                            src="${url}" 
-                            style="width: 100%; height: 100%; border: none;"
-                            onload="console.log('Website loaded successfully: ${url}'); clearTimeout(window.iframeTimeout_${iframeId});"
-                        ></iframe>
-                        <div id="fallback-${iframeId}" style="display: none; padding: 40px; text-align: center; background: #f5f5f5;">
-                            <h3>Site Cannot Be Displayed</h3>
-                            <p>This website blocks embedding for security reasons.</p>
+                        <div style="padding: 40px; text-align: center; background: #f5f5f5;">
+                            <i class="fas fa-shield-alt" style="font-size: 48px; color: #ff9800; margin-bottom: 20px;"></i>
+                            <h3>Site Cannot Be Embedded</h3>
+                            <p>This website (${this.extractTitleFromUrl(url)}) prevents embedding for security reasons.</p>
                             <p><strong>URL:</strong> ${url}</p>
-                            <a href="${url}" target="_blank" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px;">
-                                Open in New Tab
-                            </a>
-                            <p style="margin-top: 20px; font-size: 14px; color: #666;">
-                                In the native app, this would display properly without restrictions.
+                            <div style="margin: 30px 0;">
+                                <a href="${url}" target="_blank" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px;">
+                                    <i class="fas fa-external-link-alt"></i> Open in New Tab
+                                </a>
+                                <button onclick="window.privacyBrowser.createNewTab()" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                    <i class="fas fa-plus"></i> New Tab
+                                </button>
+                            </div>
+                            <p style="font-size: 14px; color: #666; margin-top: 20px;">
+                                <i class="fas fa-info-circle"></i> 
+                                The native desktop version of Privacy Browser can display these sites properly using a webview instead of iframe.
                             </p>
                         </div>
                     `;
+                } else {
+                    // Show loading indicator first
+                    contentArea.innerHTML = `
+                        <div style="padding: 20px; text-align: center;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading ${url}...</p>
+                        </div>
+                    `;
                     
-                    // Set timeout to show fallback if iframe doesn't load
-                    window['iframeTimeout_' + iframeId] = setTimeout(() => {
-                        const iframe = document.getElementById(iframeId);
-                        const fallback = document.getElementById('fallback-' + iframeId);
-                        if (iframe && fallback) {
-                            iframe.style.display = 'none';
-                            fallback.style.display = 'block';
-                            console.log('Iframe failed to load, showing fallback for:', url);
-                        }
-                    }, 5000);
-                    
-                    console.log('Iframe created for:', url);
-                }, 200);
+                    // Try to load in iframe with error handling
+                    setTimeout(() => {
+                        const iframeId = 'iframe-' + Date.now();
+                        contentArea.innerHTML = `
+                            <iframe 
+                                id="${iframeId}"
+                                src="${url}" 
+                                style="width: 100%; height: 100%; border: none;"
+                                onload="console.log('Website loaded successfully: ${url}'); clearTimeout(window.iframeTimeout_${iframeId});"
+                                onerror="document.getElementById('fallback-${iframeId}').style.display = 'block'; this.style.display = 'none';"
+                            ></iframe>
+                            <div id="fallback-${iframeId}" style="display: none; padding: 40px; text-align: center; background: #f5f5f5;">
+                                <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ff9800; margin-bottom: 20px;"></i>
+                                <h3>Site Cannot Be Displayed</h3>
+                                <p>This website blocks embedding for security reasons or failed to load.</p>
+                                <p><strong>URL:</strong> ${url}</p>
+                                <div style="margin: 30px 0;">
+                                    <a href="${url}" target="_blank" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px;">
+                                        <i class="fas fa-external-link-alt"></i> Open in New Tab
+                                    </a>
+                                    <button onclick="window.privacyBrowser.navigateToUrl('${url}')" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                        <i class="fas fa-redo"></i> Try Again
+                                    </button>
+                                </div>
+                                <p style="font-size: 14px; color: #666;">
+                                    <i class="fas fa-info-circle"></i> 
+                                    The native app version would display this properly without restrictions.
+                                </p>
+                            </div>
+                        `;
+                        
+                        // Set timeout to show fallback if iframe doesn't load
+                        window['iframeTimeout_' + iframeId] = setTimeout(() => {
+                            const iframe = document.getElementById(iframeId);
+                            const fallback = document.getElementById('fallback-' + iframeId);
+                            if (iframe && fallback && iframe.style.display !== 'none') {
+                                iframe.style.display = 'none';
+                                fallback.style.display = 'block';
+                                console.log('Iframe failed to load, showing fallback for:', url);
+                            }
+                        }, 3000); // Reduced timeout to 3 seconds
+                        
+                        console.log('Iframe created for:', url);
+                    }, 200);
+                }
             }
 
             const tab = this.tabs.get(this.activeTabId);
