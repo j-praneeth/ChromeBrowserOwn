@@ -2,6 +2,7 @@ modules = ["rust", "python-3.11"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["pkg-config", "glib", "gtk3", "webkitgtk", "openssl"]
 
 [workflows]
 runButton = "Project"

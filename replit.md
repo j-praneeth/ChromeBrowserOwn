@@ -103,7 +103,10 @@ Privacy Browser is a desktop web browser application built with Tauri, combining
 
 ## Changelog
 - July 02, 2025. Initial setup
+- July 02, 2025. Fixed Tauri compilation issues and system dependencies
+- July 02, 2025. Successfully building native cross-platform privacy browser
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+User wants native application (not web-based demo) with Chrome-level performance.

@@ -1,0 +1,8 @@
+/home/runner/workspace/src-tauri/target/release/deps/libserde_with_macros-dc96cb7d812cad62.so: /home/runner/workspace/.local/share/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_with_macros-3.14.0/src/lib.rs /home/runner/workspace/.local/share/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_with_macros-3.14.0/src/apply.rs /home/runner/workspace/.local/share/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_with_macros-3.14.0/src/lazy_bool.rs /home/runner/workspace/.local/share/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_with_macros-3.14.0/src/utils.rs
+
+/home/runner/workspace/src-tauri/target/release/deps/serde_with_macros-dc96cb7d812cad62.d: /home/runner/workspace/.local/share/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_with_macros-3.14.0/src/lib.rs /home/runner/workspace/.local/share/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_with_macros-3.14.0/src/apply.rs /home/runner/workspace/.local/share/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_with_macros-3.14.0/src/lazy_bool.rs /home/runner/workspace/.local/share/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_with_macros-3.14.0/src/utils.rs
+
+/home/runner/workspace/.local/share/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_with_macros-3.14.0/src/lib.rs:
+/home/runner/workspace/.local/share/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_with_macros-3.14.0/src/apply.rs:
+/home/runner/workspace/.local/share/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_with_macros-3.14.0/src/lazy_bool.rs:
+/home/runner/workspace/.local/share/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_with_macros-3.14.0/src/utils.rs:
