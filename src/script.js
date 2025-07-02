@@ -359,17 +359,25 @@ class PrivacyBrowser {
             
             // Check URL safety first
             if (isTauri) {
-                const isSafe = await window.__TAURI__.invoke('check_url_safety', { url });
-                if (!isSafe) {
-                    this.showBlockedPage(url);
-                    return;
+                try {
+                    const isSafe = await window.__TAURI__.invoke('check_url_safety', { url });
+                    if (!isSafe) {
+                        this.showBlockedPage(url);
+                        return;
+                    }
+                    
+                    await window.__TAURI__.invoke('navigate_tab', { 
+                        tabId: this.activeTabId, 
+                        url 
+                    });
+                } catch (e) {
+                    console.log('Tauri navigation failed, using web mode fallback');
+                    // Fall through to web mode navigation
                 }
-                
-                await window.__TAURI__.invoke('navigate_tab', { 
-                    tabId: this.activeTabId, 
-                    url 
-                });
-            } else {
+            }
+            
+            // Web mode navigation (also fallback for Tauri)
+            if (!isTauri || true) {
                 // Web mode: Check privacy lists
                 const privacyLists = new PrivacyLists();
                 if (privacyLists.shouldBlockUrl(url)) {
