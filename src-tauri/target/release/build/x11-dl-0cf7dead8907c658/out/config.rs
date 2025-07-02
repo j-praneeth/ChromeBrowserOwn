@@ -14,6 +14,6 @@ pub const xtst: Option<&'static str> = None;
 pub const xrender: Option<&'static str> = Some("/nix/store/37bzg32wlrlknwbrsvjr4cxwmjh8dbzl-libXrender-0.9.11/lib");
 pub const xpresent: Option<&'static str> = None;
 pub const xscrnsaver: Option<&'static str> = None;
-pub const xt: Option<&'static str> = None;
+pub const xt: Option<&'static str> = Some("/nix/store/zv11hyaz89al1fg7bqhvl7kraw26haia-libXt-1.3.0/lib");
 }
 }

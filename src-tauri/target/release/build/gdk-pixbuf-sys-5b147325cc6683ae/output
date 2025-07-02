@@ -33,12 +33,12 @@ cargo:rerun-if-env-changed=PKG_CONFIG_SYSROOT_DIR_x86_64-unknown-linux-gnu
 cargo:rerun-if-env-changed=PKG_CONFIG_SYSROOT_DIR_x86_64_unknown_linux_gnu
 cargo:rerun-if-env-changed=HOST_PKG_CONFIG_SYSROOT_DIR
 cargo:rerun-if-env-changed=PKG_CONFIG_SYSROOT_DIR
-cargo:rustc-link-search=native=/nix/store/k2fmr13zj9rhkr29axhkaizjqn1llxaz-gdk-pixbuf-2.42.11/lib
 cargo:rustc-link-search=native=/nix/store/c2v6ycn0sjcpx9ww8x7j4ima6xnpssry-glib-2.80.2/lib
+cargo:rustc-link-search=native=/nix/store/k2fmr13zj9rhkr29axhkaizjqn1llxaz-gdk-pixbuf-2.42.11/lib
 cargo:rustc-link-lib=gdk_pixbuf-2.0
 cargo:rustc-link-lib=gobject-2.0
 cargo:rustc-link-lib=glib-2.0
-cargo:include=/nix/store/gx938f6w31a0alyqm81c6fp70br4xqqy-gdk-pixbuf-2.42.11-dev/include/gdk-pixbuf-2.0:/nix/store/gdr1ghkakyjfdj8bc6n0virwllm4zpwz-glib-2.80.2-dev/include:/nix/store/gdr1ghkakyjfdj8bc6n0virwllm4zpwz-glib-2.80.2-dev/include/glib-2.0:/nix/store/c2v6ycn0sjcpx9ww8x7j4ima6xnpssry-glib-2.80.2/lib/glib-2.0/include
+cargo:include=/nix/store/gdr1ghkakyjfdj8bc6n0virwllm4zpwz-glib-2.80.2-dev/include:/nix/store/gdr1ghkakyjfdj8bc6n0virwllm4zpwz-glib-2.80.2-dev/include/glib-2.0:/nix/store/c2v6ycn0sjcpx9ww8x7j4ima6xnpssry-glib-2.80.2/lib/glib-2.0/include:/nix/store/gx938f6w31a0alyqm81c6fp70br4xqqy-gdk-pixbuf-2.42.11-dev/include/gdk-pixbuf-2.0
 cargo:rerun-if-env-changed=SYSTEM_DEPS_BUILD_INTERNAL
 cargo:rerun-if-env-changed=SYSTEM_DEPS_LINK
 cargo:rerun-if-env-changed=SYSTEM_DEPS_GDK_PIXBUF_2_0_LIB
