@@ -1,0 +1,296 @@
+e browser - own/ChromeBrowserOwn/src-tauri)
+error: OUT_DIR env var is not set, do you have a build script?
+   --> src/main.rs:133:14
+    |
+133 |         .run(tauri::generate_context!())
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this error originates in the macro `tauri::generate_context` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: future cannot be sent between threads safely
+   --> src/main.rs:35:1
+    |
+35  |   #[tauri::command]
+    |   ^^^^^^^^^^^^^^^^^ future returned by `navigate_tab` is not `Send`
+...
+121 |           .invoke_handler(tauri::generate_handler![
+    |  _________________________-
+122 | |             create_tab,
+123 | |             close_tab,
+124 | |             navigate_tab,
+...   |
+131 | |             check_url_safety
+132 | |         ])
+    | |_________- in this macro invocation
+    |
+    = help: within `impl std::future::Future<Output = Result<(), std::string::String>>`, the trait `Send` is not implemented for `std::sync::MutexGuard<'_, BrowserState>`
+note: future is not `Send` as this value is used across an await
+   --> src/main.rs:49:66
+    |
+37  |     let mut browser = state.browser.lock().unwrap();
+    |         ----------- has type `std::sync::MutexGuard<'_, BrowserState>` which is not `Send`
+...
+49  |     storage.add_history_entry(&url, &format!("Page at {}", url)).await.map_err(|e| e.to_string())?;
+    |                                                                  ^^^^^ await occurs here, with `mut browser` maybe used later
+note: required by a bound in `ResultFutureTag::future`
+   --> /Users/apple/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-1.8.3/src/command.rs:293:42
+    |
+289 |     pub fn future<T, E, F>(self, value: F) -> impl Future<Output = Result<Value, InvokeError>>
+    |            ------ required by a bound in this associated function
+...
+293 |       F: Future<Output = Result<T, E>> + Send,
+    |                                          ^^^^ required by this bound in `ResultFutureTag::future`
+    = note: this error originates in the macro `__cmd__navigate_tab` which comes from the expansion of the macro `tauri::generate_handler` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: future cannot be sent between threads safely
+   --> src/main.rs:35:1
+    |
+35  |   #[tauri::command]
+    |   ^^^^^^^^^^^^^^^^^ future returned by `navigate_tab` is not `Send`
+...
+121 |           .invoke_handler(tauri::generate_handler![
+    |  _________________________-
+122 | |             create_tab,
+123 | |             close_tab,
+124 | |             navigate_tab,
+...   |
+131 | |             check_url_safety
+132 | |         ])
+    | |_________- in this macro invocation
+    |
+    = help: within `impl std::future::Future<Output = Result<(), std::string::String>>`, the trait `Send` is not implemented for `std::sync::MutexGuard<'_, PrivacyEngine>`
+note: future is not `Send` as this value is used across an await
+   --> src/main.rs:49:66
+    |
+38  |     let privacy = state.privacy.lock().unwrap();
+    |         ------- has type `std::sync::MutexGuard<'_, PrivacyEngine>` which is not `Send`
+...
+49  |     storage.add_history_entry(&url, &format!("Page at {}", url)).await.map_err(|e| e.to_string())?;
+    |                                                                  ^^^^^ await occurs here, with `privacy` maybe used later
+note: required by a bound in `ResultFutureTag::future`
+   --> /Users/apple/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-1.8.3/src/command.rs:293:42
+    |
+289 |     pub fn future<T, E, F>(self, value: F) -> impl Future<Output = Result<Value, InvokeError>>
+    |            ------ required by a bound in this associated function
+...
+293 |       F: Future<Output = Result<T, E>> + Send,
+    |                                          ^^^^ required by this bound in `ResultFutureTag::future`
+    = note: this error originates in the macro `__cmd__navigate_tab` which comes from the expansion of the macro `tauri::generate_handler` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: future cannot be sent between threads safely
+   --> src/main.rs:35:1
+    |
+35  |   #[tauri::command]
+    |   ^^^^^^^^^^^^^^^^^ future returned by `navigate_tab` is not `Send`
+...
+121 |           .invoke_handler(tauri::generate_handler![
+    |  _________________________-
+122 | |             create_tab,
+123 | |             close_tab,
+124 | |             navigate_tab,
+...   |
+131 | |             check_url_safety
+132 | |         ])
+    | |_________- in this macro invocation
+    |
+    = help: within `impl std::future::Future<Output = Result<(), std::string::String>>`, the trait `Send` is not implemented for `std::sync::MutexGuard<'_, StorageManager>`
+note: future is not `Send` as this value is used across an await
+   --> src/main.rs:49:66
+    |
+48  |     let mut storage = state.storage.lock().unwrap();
+    |         ----------- has type `std::sync::MutexGuard<'_, StorageManager>` which is not `Send`
+49  |     storage.add_history_entry(&url, &format!("Page at {}", url)).await.map_err(|e| e.to_string())?;
+    |                                                                  ^^^^^ await occurs here, with `mut storage` maybe used later
+note: required by a bound in `ResultFutureTag::future`
+   --> /Users/apple/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-1.8.3/src/command.rs:293:42
+    |
+289 |     pub fn future<T, E, F>(self, value: F) -> impl Future<Output = Result<Value, InvokeError>>
+    |            ------ required by a bound in this associated function
+...
+293 |       F: Future<Output = Result<T, E>> + Send,
+    |                                          ^^^^ required by this bound in `ResultFutureTag::future`
+    = note: this error originates in the macro `__cmd__navigate_tab` which comes from the expansion of the macro `tauri::generate_handler` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: future cannot be sent between threads safely
+   --> src/main.rs:60:1
+    |
+60  |   #[tauri::command]
+    |   ^^^^^^^^^^^^^^^^^ future returned by `add_bookmark` is not `Send`
+...
+121 |           .invoke_handler(tauri::generate_handler![
+    |  _________________________-
+122 | |             create_tab,
+123 | |             close_tab,
+124 | |             navigate_tab,
+...   |
+131 | |             check_url_safety
+132 | |         ])
+    | |_________- in this macro invocation
+    |
+    = help: within `impl std::future::Future<Output = Result<(), std::string::String>>`, the trait `Send` is not implemented for `std::sync::MutexGuard<'_, StorageManager>`
+note: future is not `Send` as this value is used across an await
+   --> src/main.rs:63:40
+    |
+62  |     let mut storage = state.storage.lock().unwrap();
+    |         ----------- has type `std::sync::MutexGuard<'_, StorageManager>` which is not `Send`
+63  |     storage.add_bookmark(&url, &title).await.map_err(|e| e.to_string())
+    |                                        ^^^^^ await occurs here, with `mut storage` maybe used later
+note: required by a bound in `ResultFutureTag::future`
+   --> /Users/apple/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-1.8.3/src/command.rs:293:42
+    |
+289 |     pub fn future<T, E, F>(self, value: F) -> impl Future<Output = Result<Value, InvokeError>>
+    |            ------ required by a bound in this associated function
+...
+293 |       F: Future<Output = Result<T, E>> + Send,
+    |                                          ^^^^ required by this bound in `ResultFutureTag::future`
+    = note: this error originates in the macro `__cmd__add_bookmark` which comes from the expansion of the macro `tauri::generate_handler` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: future cannot be sent between threads safely
+   --> src/main.rs:66:1
+    |
+66  |   #[tauri::command]
+    |   ^^^^^^^^^^^^^^^^^ future returned by `get_bookmarks` is not `Send`
+...
+121 |           .invoke_handler(tauri::generate_handler![
+    |  _________________________-
+122 | |             create_tab,
+123 | |             close_tab,
+124 | |             navigate_tab,
+...   |
+131 | |             check_url_safety
+132 | |         ])
+    | |_________- in this macro invocation
+    |
+    = help: within `impl std::future::Future<Output = Result<Vec<Bookmark>, std::string::String>>`, the trait `Send` is not implemented for `std::sync::MutexGuard<'_, StorageManager>`
+note: future is not `Send` as this value is used across an await
+   --> src/main.rs:69:29
+    |
+68  |     let mut storage = state.storage.lock().unwrap();
+    |         ----------- has type `std::sync::MutexGuard<'_, StorageManager>` which is not `Send`
+69  |     storage.get_bookmarks().await.map_err(|e| e.to_string())
+    |                             ^^^^^ await occurs here, with `mut storage` maybe used later
+note: required by a bound in `ResultFutureTag::future`
+   --> /Users/apple/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-1.8.3/src/command.rs:293:42
+    |
+289 |     pub fn future<T, E, F>(self, value: F) -> impl Future<Output = Result<Value, InvokeError>>
+    |            ------ required by a bound in this associated function
+...
+293 |       F: Future<Output = Result<T, E>> + Send,
+    |                                          ^^^^ required by this bound in `ResultFutureTag::future`
+    = note: this error originates in the macro `__cmd__get_bookmarks` which comes from the expansion of the macro `tauri::generate_handler` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: future cannot be sent between threads safely
+   --> src/main.rs:72:1
+    |
+72  |   #[tauri::command]
+    |   ^^^^^^^^^^^^^^^^^ future returned by `get_history` is not `Send`
+...
+121 |           .invoke_handler(tauri::generate_handler![
+    |  _________________________-
+122 | |             create_tab,
+123 | |             close_tab,
+124 | |             navigate_tab,
+...   |
+131 | |             check_url_safety
+132 | |         ])
+    | |_________- in this macro invocation
+    |
+    = help: within `impl std::future::Future<Output = Result<Vec<HistoryEntry>, std::string::String>>`, the trait `Send` is not implemented for `std::sync::MutexGuard<'_, StorageManager>`
+note: future is not `Send` as this value is used across an await
+   --> src/main.rs:75:27
+    |
+74  |     let mut storage = state.storage.lock().unwrap();
+    |         ----------- has type `std::sync::MutexGuard<'_, StorageManager>` which is not `Send`
+75  |     storage.get_history().await.map_err(|e| e.to_string())
+    |                           ^^^^^ await occurs here, with `mut storage` maybe used later
+note: required by a bound in `ResultFutureTag::future`
+   --> /Users/apple/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-1.8.3/src/command.rs:293:42
+    |
+289 |     pub fn future<T, E, F>(self, value: F) -> impl Future<Output = Result<Value, InvokeError>>
+    |            ------ required by a bound in this associated function
+...
+293 |       F: Future<Output = Result<T, E>> + Send,
+    |                                          ^^^^ required by this bound in `ResultFutureTag::future`
+    = note: this error originates in the macro `__cmd__get_history` which comes from the expansion of the macro `tauri::generate_handler` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: future cannot be sent between threads safely
+   --> src/main.rs:78:1
+    |
+78  |   #[tauri::command]
+    |   ^^^^^^^^^^^^^^^^^ future returned by `clear_history` is not `Send`
+...
+121 |           .invoke_handler(tauri::generate_handler![
+    |  _________________________-
+122 | |             create_tab,
+123 | |             close_tab,
+124 | |             navigate_tab,
+...   |
+131 | |             check_url_safety
+132 | |         ])
+    | |_________- in this macro invocation
+    |
+    = help: within `impl std::future::Future<Output = Result<(), std::string::String>>`, the trait `Send` is not implemented for `std::sync::MutexGuard<'_, StorageManager>`
+note: future is not `Send` as this value is used across an await
+   --> src/main.rs:81:29
+    |
+80  |     let mut storage = state.storage.lock().unwrap();
+    |         ----------- has type `std::sync::MutexGuard<'_, StorageManager>` which is not `Send`
+81  |     storage.clear_history().await.map_err(|e| e.to_string())
+    |                             ^^^^^ await occurs here, with `mut storage` maybe used later
+note: required by a bound in `ResultFutureTag::future`
+   --> /Users/apple/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-1.8.3/src/command.rs:293:42
+    |
+289 |     pub fn future<T, E, F>(self, value: F) -> impl Future<Output = Result<Value, InvokeError>>
+    |            ------ required by a bound in this associated function
+...
+293 |       F: Future<Output = Result<T, E>> + Send,
+    |                                          ^^^^ required by this bound in `ResultFutureTag::future`
+    = note: this error originates in the macro `__cmd__clear_history` which comes from the expansion of the macro `tauri::generate_handler` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: future cannot be sent between threads safely
+   --> src/main.rs:84:1
+    |
+84  |   #[tauri::command]
+    |   ^^^^^^^^^^^^^^^^^ future returned by `update_privacy_lists` is not `Send`
+...
+121 |           .invoke_handler(tauri::generate_handler![
+    |  _________________________-
+122 | |             create_tab,
+123 | |             close_tab,
+124 | |             navigate_tab,
+...   |
+131 | |             check_url_safety
+132 | |         ])
+    | |_________- in this macro invocation
+    |
+    = help: within `impl std::future::Future<Output = Result<(), std::string::String>>`, the trait `Send` is not implemented for `std::sync::MutexGuard<'_, PrivacyEngine>`
+note: future is not `Send` as this value is used across an await
+   --> src/main.rs:87:34
+    |
+86  |     let mut privacy = state.privacy.lock().unwrap();
+    |         ----------- has type `std::sync::MutexGuard<'_, PrivacyEngine>` which is not `Send`
+87  |     privacy.update_block_lists().await.map_err(|e| e.to_string())
+    |                                  ^^^^^ await occurs here, with `mut privacy` maybe used later
+note: required by a bound in `ResultFutureTag::future`
+   --> /Users/apple/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-1.8.3/src/command.rs:293:42
+    |
+289 |     pub fn future<T, E, F>(self, value: F) -> impl Future<Output = Result<Value, InvokeError>>
+    |            ------ required by a bound in this associated function
+...
+293 |       F: Future<Output = Result<T, E>> + Send,
+    |                                          ^^^^ required by this bound in `ResultFutureTag::future`
+    = note: this error originates in the macro `__cmd__update_privacy_lists` which comes from the expansion of the macro `tauri::generate_handler` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0502]: cannot borrow `*self` as immutable because it is also borrowed as mutable
+  --> src/browser.rs:72:25
+   |
+70 |         if let Some(tab) = self.tabs.get_mut(tab_id) {
+   |                            --------- mutable borrow occurs here
+71 |             tab.url = url.to_string();
+72 |             tab.title = self.extract_title_from_url(url);
+   |             ---------   ^^^^ immutable borrow occurs here
+   |             |
+   |             mutable borrow later used here
+
+For more information about this error, try `rustc --explain E0502`.
+error: could not compile `privacy-browser` (bin "privacy-browser") due to 18 previous errors

@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Browser - Cross Platform Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .browser-window {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #1a1a1a;
+        }
+
+        /* Window Controls */
+        .window-controls {
+            height: 30px;
+            background: #2d2d2d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            -webkit-app-region: drag;
+        }
+
+        .window-title {
+            color: #ccc;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .window-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .window-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            -webkit-app-region: no-drag;
+        }
+
+        .window-btn.close { background: #ff5f57; }
+        .window-btn.minimize { background: #ffbd2e; }
+        .window-btn.maximize { background: #28ca42; }
+
+        /* Tab Bar */
+        .tab-bar {
+            height: 40px;
+            background: #2d2d2d;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #404040;
+            overflow-x: auto;
+        }
+
+        .tabs-container {
+            display: flex;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tab {
+            min-width: 180px;
+            max-width: 240px;
+            height: 36px;
+            background: #404040;
+            border: 1px solid #555;
+            border-bottom: none;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            cursor: pointer;
+            margin-right: 2px;
+            position: relative;
+        }
+
+        .tab.active {
+            background: #1a1a1a;
+            border-color: #666;
+        }
+
+        .tab-favicon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            font-size: 12px;
+        }
+
+        .tab-title {
+            flex: 1;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #ccc;
+        }
+
+        .tab.active .tab-title {
+            color: #fff;
+        }
+
+        .tab-close {
+            width: 18px;
+            height: 18px;
+            border: none;
+            background: transparent;
+            color: #999;
+            cursor: pointer;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 4px;
+            font-size: 12px;
+        }
+
+        .tab-close:hover {
+            background: #555;
+            color: #fff;
+        }
+
+        .new-tab-btn {
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border: 1px solid #555;
+            color: #ccc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 8px;
+            border-radius: 4px;
+        }
+
+        .new-tab-btn:hover {
+            background: #404040;
+            color: #fff;
+        }
+
+        /* Navigation Bar */
+        .nav-bar {
+            height: 50px;
+            background: #2d2d2d;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 10px;
+            border-bottom: 1px solid #404040;
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-btn {
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: 1px solid #555;
+            color: #ccc;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: #404040;
+            color: #fff;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .address-bar-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: #1a1a1a;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 0 12px;
+            height: 36px;
+        }
+
+        .security-indicator {
+            margin-right: 8px;
+            color: #4CAF50;
+            font-size: 14px;
+        }
+
+        .address-bar {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .address-bar::placeholder {
+            color: #888;
+        }
+
+        .privacy-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #4CAF50;
+            font-size: 12px;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+
+        .blocked-count {
+            background: #4CAF50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            position: relative;
+            background: #1a1a1a;
+            display: flex;
+        }
+
+        .webview {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            display: none;
+        }
+
+        .webview.active {
+            display: block;
+        }
+
+        .blocked-page {
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .blocked-page.active {
+            display: flex;
+        }
+
+        .blocked-icon {
+            font-size: 64px;
+            color: #f44336;
+            margin-bottom: 20px;
+        }
+
+        .blocked-message h2 {
+            color: #f44336;
+            margin-bottom: 16px;
+        }
+
+        .blocked-message p {
+            color: #ccc;
+            margin-bottom: 20px;
+            max-width: 500px;
+        }
+
+        .blocked-url {
+            background: #2d2d2d;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 20px;
+            word-break: break-all;
+        }
+
+        .privacy-stats {
+            background: #2d2d2d;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #404040;
+            max-width: 400px;
+        }
+
+        .privacy-stats h3 {
+            color: #4CAF50;
+            margin-bottom: 12px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            color: #ccc;
+        }
+
+        .stat-value {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .tech-stack {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2d2d2d;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 16px;
+            max-width: 300px;
+            font-size: 12px;
+        }
+
+        .tech-stack h4 {
+            color: #4CAF50;
+            margin-bottom: 8px;
+        }
+
+        .tech-item {
+            color: #ccc;
+            margin: 4px 0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #555;
+            border-top: 2px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="browser-window">
+        <!-- Window Controls -->
+        <div class="window-controls">
+            <div class="window-title">Privacy Browser - Cross Platform</div>
+            <div class="window-buttons">
+                <button class="window-btn close" onclick="closeWindow()"></button>
+                <button class="window-btn minimize" onclick="minimizeWindow()"></button>
+                <button class="window-btn maximize" onclick="maximizeWindow()"></button>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <div class="tabs-container" id="tabs-container">
+                <!-- Tabs will be dynamically added here -->
+            </div>
+            <button class="new-tab-btn" onclick="createNewTab()">+</button>
+        </div>
+
+        <!-- Navigation Bar -->
+        <div class="nav-bar">
+            <div class="nav-controls">
+                <button class="nav-btn" id="back-btn" onclick="goBack()" disabled>←</button>
+                <button class="nav-btn" id="forward-btn" onclick="goForward()" disabled>→</button>
+                <button class="nav-btn" id="refresh-btn" onclick="refresh()">↻</button>
+            </div>
+            
+            <div class="address-bar-container">
+                <div class="security-indicator" id="security-icon">🛡️</div>
+                <input type="text" class="address-bar" id="address-bar" placeholder="Search or enter web address" onkeypress="handleAddressInput(event)">
+                <div class="privacy-indicator" onclick="showPrivacyStats()">
+                    <span class="blocked-count" id="blocked-count">0</span>
+                    <span>🚫</span>
+                </div>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="nav-btn" onclick="addBookmark()">⭐</button>
+                <button class="nav-btn" onclick="openMenu()">⋮</button>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area" id="content-area">
+            <!-- Web content and blocked pages will be shown here -->
+        </div>
+
+        <!-- Blocked Page Template -->
+        <div class="blocked-page" id="blocked-page-template" style="display: none;">
+            <div class="blocked-icon">🛡️</div>
+            <div class="blocked-message">
+                <h2>Site Blocked for Privacy Protection</h2>
+                <p>This site contains trackers or ads that could compromise your privacy. The Privacy Browser has blocked it to keep your browsing safe.</p>
+                <div class="blocked-url" id="blocked-url"></div>
+                <div class="privacy-stats">
+                    <h3>Privacy Protection Stats</h3>
+                    <div class="stat-item">
+                        <span>Trackers Blocked Today:</span>
+                        <span class="stat-value" id="trackers-blocked">247</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Ads Blocked Today:</span>
+                        <span class="stat-value" id="ads-blocked">156</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Data Saved:</span>
+                        <span class="stat-value">12.4 MB</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Time Saved:</span>
+                        <span class="stat-value">4.2 seconds</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tech Stack Info -->
+    <div class="tech-stack">
+        <h4>Cross-Platform Stack</h4>
+        <div class="tech-item"><strong>Backend:</strong> Rust</div>
+        <div class="tech-item"><strong>Framework:</strong> Tauri</div>
+        <div class="tech-item"><strong>Frontend:</strong> HTML/CSS/JS</div>
+        <div class="tech-item"><strong>Bundle:</strong> ~5MB</div>
+        <div class="tech-item"><strong>Performance:</strong> Native</div>
+        <div class="tech-item"><strong>Privacy:</strong> Built-in</div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Privacy Browser JavaScript Implementation
+        class PrivacyBrowser {
+            constructor() {
+                this.tabs = new Map();
+                this.activeTabId = null;
+                this.blockedCount = 0;
+                this.trackerDomains = new Set([
+                    'google-analytics.com',
+                    'googletagmanager.com',
+                    'facebook.com',
+                    'doubleclick.net',
+                    'googlesyndication.com',
+                    'amazon-adsystem.com',
+                    'twitter.com',
+                    'outbrain.com',
+                    'taboola.com',
+                    'criteo.com'
+                ]);
+                
+                this.init();
+            }
+
+            init() {
+                this.createNewTab();
+                this.startPrivacyCounter();
+            }
+
+            createNewTab() {
+                const tabId = 'tab-' + Date.now();
+                const tab = {
+                    id: tabId,
+                    title: 'New Tab',
+                    url: 'about:blank',
+                    loading: false,
+                    canGoBack: false,
+                    canGoForward: false
+                };
+
+                this.tabs.set(tabId, tab);
+                this.activeTabId = tabId;
+                this.renderTabs();
+                this.showStartPage();
+            }
+
+            closeTab(tabId) {
+                this.tabs.delete(tabId);
+                
+                if (this.activeTabId === tabId) {
+                    const remainingTabs = Array.from(this.tabs.keys());
+                    this.activeTabId = remainingTabs.length > 0 ? remainingTabs[0] : null;
+                }
+                
+                if (this.tabs.size === 0) {
+                    this.createNewTab();
+                }
+                
+                this.renderTabs();
+            }
+
+            switchToTab(tabId) {
+                this.activeTabId = tabId;
+                this.renderTabs();
+                this.updateNavigationState();
+                
+                const tab = this.tabs.get(tabId);
+                if (tab) {
+                    document.getElementById('address-bar').value = tab.url === 'about:blank' ? '' : tab.url;
+                }
+            }
+
+            renderTabs() {
+                const container = document.getElementById('tabs-container');
+                container.innerHTML = '';
+
+                for (const [tabId, tab] of this.tabs) {
+                    const tabElement = document.createElement('div');
+                    tabElement.className = `tab ${tabId === this.activeTabId ? 'active' : ''}`;
+                    
+                    tabElement.innerHTML = `
+                        <div class="tab-favicon">${tab.loading ? '<div class="loading"></div>' : '🌐'}</div>
+                        <div class="tab-title">${this.escapeHtml(tab.title)}</div>
+                        <button class="tab-close" onclick="browser.closeTab('${tabId}')">×</button>
+                    `;
+
+                    tabElement.addEventListener('click', (e) => {
+                        if (!e.target.closest('.tab-close')) {
+                            this.switchToTab(tabId);
+                        }
+                    });
+
+                    container.appendChild(tabElement);
+                }
+            }
+
+            navigateToUrl(url) {
+                if (!this.activeTabId || !url.trim()) return;
+
+                url = url.trim();
+                
+                // Check if it's a search query or URL
+                if (!this.isValidUrl(url)) {
+                    url = `https://duckduckgo.com/?q=${encodeURIComponent(url)}`;
+                } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+
+                // Check if URL should be blocked
+                if (this.shouldBlockUrl(url)) {
+                    this.showBlockedPage(url);
+                    this.blockedCount++;
+                    this.updatePrivacyCounter();
+                    this.showNotification('Blocked tracker/ad domain for privacy protection');
+                    return;
+                }
+
+                const tab = this.tabs.get(this.activeTabId);
+                if (tab) {
+                    tab.url = url;
+                    tab.loading = true;
+                    tab.title = this.extractTitleFromUrl(url);
+                    
+                    document.getElementById('address-bar').value = url;
+                    this.renderTabs();
+                    this.simulatePageLoad(url);
+                }
+            }
+
+            shouldBlockUrl(url) {
+                try {
+                    const urlObj = new URL(url);
+                    const hostname = urlObj.hostname.toLowerCase();
+                    
+                    return Array.from(this.trackerDomains).some(domain => 
+                        hostname.includes(domain)
+                    );
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            showBlockedPage(url) {
+                const contentArea = document.getElementById('content-area');
+                const template = document.getElementById('blocked-page-template');
+                const blockedPage = template.cloneNode(true);
+                
+                blockedPage.style.display = 'flex';
+                blockedPage.classList.add('active');
+                blockedPage.id = 'blocked-page-active';
+                
+                blockedPage.querySelector('#blocked-url').textContent = url;
+                
+                contentArea.innerHTML = '';
+                contentArea.appendChild(blockedPage);
+            }
+
+            simulatePageLoad(url) {
+                const tab = this.tabs.get(this.activeTabId);
+                
+                setTimeout(() => {
+                    if (tab) {
+                        tab.loading = false;
+                        tab.title = this.extractTitleFromUrl(url);
+                        this.renderTabs();
+                        
+                        // Simulate loading a real webpage (would use webview in actual Tauri app)
+                        this.showWebContent(url);
+                    }
+                }, 1000);
+            }
+
+            showWebContent(url) {
+                const contentArea = document.getElementById('content-area');
+                contentArea.innerHTML = `
+                    <iframe class="webview active" src="${url}" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+                `;
+            }
+
+            showStartPage() {
+                const contentArea = document.getElementById('content-area');
+                contentArea.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 40px;">
+                        <div style="font-size: 48px; color: #4CAF50; margin-bottom: 20px;">🛡️</div>
+                        <h2 style="color: #4CAF50; margin-bottom: 16px;">Privacy Browser</h2>
+                        <p style="color: #ccc; margin-bottom: 20px;">Cross-platform privacy browser built with Tauri</p>
+                        <div style="display: flex; gap: 20px; margin-bottom: 30px;">
+                            <div style="background: #2d2d2d; padding: 16px; border-radius: 8px; border: 1px solid #404040;">
+                                <h4 style="color: #4CAF50;">🚀 Native Speed</h4>
+                                <p style="color: #ccc; font-size: 12px;">Rust backend performance</p>
+                            </div>
+                            <div style="background: #2d2d2d; padding: 16px; border-radius: 8px; border: 1px solid #404040;">
+                                <h4 style="color: #4CAF50;">🔒 Privacy First</h4>
+                                <p style="color: #ccc; font-size: 12px;">Built-in ad blocking</p>
+                            </div>
+                            <div style="background: #2d2d2d; padding: 16px; border-radius: 8px; border: 1px solid #404040;">
+                                <h4 style="color: #4CAF50;">🌐 Cross Platform</h4>
+                                <p style="color: #ccc; font-size: 12px;">Windows & Mac support</p>
+                            </div>
+                        </div>
+                        <input type="text" placeholder="Search privately with DuckDuckGo..." 
+                               style="width: 400px; padding: 12px; background: #2d2d2d; border: 1px solid #555; color: #fff; border-radius: 6px; outline: none;"
+                               onkeypress="if(event.key==='Enter') browser.navigateToUrl(this.value)">
+                    </div>
+                `;
+            }
+
+            updateNavigationState() {
+                const tab = this.tabs.get(this.activeTabId);
+                document.getElementById('back-btn').disabled = !tab || !tab.canGoBack;
+                document.getElementById('forward-btn').disabled = !tab || !tab.canGoForward;
+            }
+
+            updatePrivacyCounter() {
+                document.getElementById('blocked-count').textContent = this.blockedCount;
+                document.getElementById('trackers-blocked').textContent = this.blockedCount;
+            }
+
+            startPrivacyCounter() {
+                setInterval(() => {
+                    if (Math.random() < 0.1) {
+                        this.blockedCount++;
+                        this.updatePrivacyCounter();
+                    }
+                }, 3000);
+            }
+
+            isValidUrl(string) {
+                try {
+                    new URL(string.startsWith('http') ? string : 'https://' + string);
+                    return true;
+                } catch (_) {
+                    return false;
+                }
+            }
+
+            extractTitleFromUrl(url) {
+                try {
+                    const urlObj = new URL(url);
+                    return urlObj.hostname;
+                } catch (_) {
+                    return url;
+                }
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Global browser instance
+        const browser = new PrivacyBrowser();
+
+        // Global functions for UI interactions
+        function createNewTab() { browser.createNewTab(); }
+        function goBack() { console.log('Navigate back'); }
+        function goForward() { console.log('Navigate forward'); }
+        function refresh() { browser.navigateToUrl(browser.tabs.get(browser.activeTabId)?.url || ''); }
+        function addBookmark() { browser.showNotification('Bookmark added!'); }
+        function openMenu() { browser.showNotification('Menu opened (demo)'); }
+        function closeWindow() { browser.showNotification('Window would close in desktop app'); }
+        function minimizeWindow() { browser.showNotification('Window would minimize in desktop app'); }
+        function maximizeWindow() { browser.showNotification('Window would maximize in desktop app'); }
+
+        function handleAddressInput(event) {
+            if (event.key === 'Enter') {
+                browser.navigateToUrl(event.target.value);
+            }
+        }
+
+        function showPrivacyStats() {
+            browser.showNotification(`Blocked ${browser.blockedCount} trackers and ads!`);
+        }
+
+        // Initialize with some demo blocked content
+        setTimeout(() => {
+            browser.blockedCount = 247;
+            browser.updatePrivacyCounter();
+        }, 1000);
+    </script>
+</body>
+</html>
