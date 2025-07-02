@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
     "beforeBuildCommand": "",
-    "beforeDevCommand": "python -m http.server 5001 --directory ../src",
+    "beforeDevCommand": "",
     "devPath": "http://localhost:5001",
     "distDir": "../src"
   },
