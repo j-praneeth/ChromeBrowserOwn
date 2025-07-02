@@ -1,0 +1,33 @@
+[package]
+name = "privacy-browser"
+version = "0.1.0"
+description = "High-performance privacy-focused browser"
+authors = ["Privacy Browser Team"]
+license = "MIT"
+repository = "https://github.com/privacy-browser/privacy-browser"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.0", features = [] }
+
+[dependencies]
+tauri = { version = "1.0", features = ["api-all", "system-tray"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+reqwest = { version = "0.11", features = ["json"] }
+url = "2.2"
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "4.0"
+sqlx = { version = "0.6", features = ["runtime-tokio-rustls", "sqlite"] }
+uuid = { version = "1.0", features = ["v4"] }
+regex = "1.5"
+rustls = "0.20"
+webpki-roots = "0.22"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri = { version = "1.0", features = ["api-all", "system-tray"] }

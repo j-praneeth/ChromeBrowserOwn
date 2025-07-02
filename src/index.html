@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Browser</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="browser-window">
+        <!-- Window Controls -->
+        <div id="window-controls">
+            <div class="window-buttons">
+                <button id="minimize-btn" class="window-btn"><i class="fas fa-minus"></i></button>
+                <button id="maximize-btn" class="window-btn"><i class="fas fa-square"></i></button>
+                <button id="close-btn" class="window-btn close"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div id="tab-bar">
+            <div id="tabs-container">
+                <!-- Tabs will be dynamically added here -->
+            </div>
+            <button id="new-tab-btn" class="new-tab-button">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+
+        <!-- Navigation Bar -->
+        <div id="nav-bar">
+            <div class="nav-controls">
+                <button id="back-btn" class="nav-btn" disabled>
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <button id="forward-btn" class="nav-btn" disabled>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <button id="refresh-btn" class="nav-btn">
+                    <i class="fas fa-redo"></i>
+                </button>
+            </div>
+            
+            <div id="address-bar-container">
+                <div id="security-indicator">
+                    <i class="fas fa-shield-alt" id="security-icon"></i>
+                </div>
+                <input type="text" id="address-bar" placeholder="Search or enter web address">
+                <div id="privacy-indicator">
+                    <span id="blocked-count">0</span>
+                    <i class="fas fa-eye-slash" title="Trackers blocked"></i>
+                </div>
+            </div>
+            
+            <div class="nav-actions">
+                <button id="bookmark-btn" class="nav-btn">
+                    <i class="fas fa-bookmark"></i>
+                </button>
+                <button id="menu-btn" class="nav-btn">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div id="content-area">
+            <div id="webview-container">
+                <!-- Webviews will be dynamically added here -->
+            </div>
+            
+            <!-- Start Page -->
+            <div id="start-page" class="active">
+                <div class="start-page-content">
+                    <div class="logo">
+                        <i class="fas fa-shield-alt"></i>
+                        <h1>Privacy Browser</h1>
+                        <p>Browse privately, securely, and fast</p>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <div class="search-section">
+                            <input type="text" id="start-search" placeholder="Search the web privately">
+                            <button id="start-search-btn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="features">
+                        <div class="feature">
+                            <i class="fas fa-eye-slash"></i>
+                            <h3>Ad & Tracker Blocking</h3>
+                            <p>Built-in protection against ads and trackers</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-lock"></i>
+                            <h3>Private by Default</h3>
+                            <p>No data collection or tracking</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-bolt"></i>
+                            <h3>High Performance</h3>
+                            <p>Fast browsing with minimal resource usage</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bookmarks-section">
+                        <h3>Bookmarks</h3>
+                        <div id="bookmarks-grid">
+                            <!-- Bookmarks will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Overlay -->
+        <div id="menu-overlay" class="overlay hidden">
+            <div class="menu-content">
+                <div class="menu-section">
+                    <h3>Navigation</h3>
+                    <button class="menu-item" id="menu-history">
+                        <i class="fas fa-history"></i>
+                        History
+                    </button>
+                    <button class="menu-item" id="menu-bookmarks">
+                        <i class="fas fa-bookmark"></i>
+                        Bookmarks
+                    </button>
+                    <button class="menu-item" id="menu-downloads">
+                        <i class="fas fa-download"></i>
+                        Downloads
+                    </button>
+                </div>
+                
+                <div class="menu-section">
+                    <h3>Privacy</h3>
+                    <button class="menu-item" id="menu-clear-data">
+                        <i class="fas fa-trash"></i>
+                        Clear Browsing Data
+                    </button>
+                    <button class="menu-item" id="menu-privacy-settings">
+                        <i class="fas fa-shield-alt"></i>
+                        Privacy Settings
+                    </button>
+                </div>
+                
+                <div class="menu-section">
+                    <h3>Tools</h3>
+                    <button class="menu-item" id="menu-dev-tools">
+                        <i class="fas fa-code"></i>
+                        Developer Tools
+                    </button>
+                    <button class="menu-item" id="menu-settings">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Panel -->
+        <div id="history-panel" class="sidebar-panel hidden">
+            <div class="panel-header">
+                <h3>History</h3>
+                <button id="close-history" class="close-panel">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="panel-content">
+                <div class="search-bar">
+                    <input type="text" id="history-search" placeholder="Search history...">
+                </div>
+                <div id="history-list">
+                    <!-- History items will be loaded here -->
+                </div>
+                <div class="panel-actions">
+                    <button id="clear-history-btn" class="danger-btn">
+                        Clear All History
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookmarks Panel -->
+        <div id="bookmarks-panel" class="sidebar-panel hidden">
+            <div class="panel-header">
+                <h3>Bookmarks</h3>
+                <button id="close-bookmarks" class="close-panel">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="panel-content">
+                <div id="bookmarks-list">
+                    <!-- Bookmark items will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="privacy-lists.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

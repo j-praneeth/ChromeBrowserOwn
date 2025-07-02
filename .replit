@@ -1,0 +1,25 @@
+modules = ["rust"]
+
+[nix]
+channel = "stable-24_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Privacy Browser"
+
+[[workflows.workflow]]
+name = "Privacy Browser"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd src-tauri && cargo tauri dev --port 5000"
+waitForPort = 5000
