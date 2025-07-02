@@ -400,14 +400,38 @@ class PrivacyBrowser {
                 
                 // Load the website in an iframe after a brief delay
                 setTimeout(() => {
+                    const iframeId = 'iframe-' + Date.now();
                     contentArea.innerHTML = `
                         <iframe 
+                            id="${iframeId}"
                             src="${url}" 
                             style="width: 100%; height: 100%; border: none;"
-                            onload="console.log('Website loaded successfully: ${url}')"
-                            onerror="console.error('Failed to load website in iframe: ${url}')"
+                            onload="console.log('Website loaded successfully: ${url}'); clearTimeout(window.iframeTimeout_${iframeId});"
                         ></iframe>
+                        <div id="fallback-${iframeId}" style="display: none; padding: 40px; text-align: center; background: #f5f5f5;">
+                            <h3>Site Cannot Be Displayed</h3>
+                            <p>This website blocks embedding for security reasons.</p>
+                            <p><strong>URL:</strong> ${url}</p>
+                            <a href="${url}" target="_blank" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px;">
+                                Open in New Tab
+                            </a>
+                            <p style="margin-top: 20px; font-size: 14px; color: #666;">
+                                In the native app, this would display properly without restrictions.
+                            </p>
+                        </div>
                     `;
+                    
+                    // Set timeout to show fallback if iframe doesn't load
+                    window['iframeTimeout_' + iframeId] = setTimeout(() => {
+                        const iframe = document.getElementById(iframeId);
+                        const fallback = document.getElementById('fallback-' + iframeId);
+                        if (iframe && fallback) {
+                            iframe.style.display = 'none';
+                            fallback.style.display = 'block';
+                            console.log('Iframe failed to load, showing fallback for:', url);
+                        }
+                    }, 5000);
+                    
                     console.log('Iframe created for:', url);
                 }, 200);
             }
