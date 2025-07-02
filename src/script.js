@@ -15,23 +15,38 @@ class PrivacyBrowser {
         try {
             console.log('Initializing Privacy Browser...');
             
+            // Check if running in Tauri
+            const isTauri = typeof window.__TAURI__ !== 'undefined';
+            console.log('Tauri environment detected:', isTauri);
+            
             // Create initial tab
             console.log('Creating initial tab...');
             
-            // Force create a tab for web mode
-            const tabId = 'web-tab-' + Date.now();
-            const tab = {
-                id: tabId,
-                title: 'New Tab',
-                url: 'about:blank',
-                loading: false,
-                canGoBack: false,
-                canGoForward: false
-            };
-            this.tabs.set(tabId, tab);
-            this.activeTabId = tabId;
-            console.log('Force created tab:', tabId);
-            console.log('Active tab is now:', this.activeTabId);
+            if (isTauri) {
+                // Native mode - create tab via Tauri
+                try {
+                    const tabId = await window.__TAURI__.invoke('create_tab');
+                    console.log('Native tab created:', tabId);
+                    
+                    const tab = {
+                        id: tabId,
+                        title: 'New Tab',
+                        url: 'about:blank',
+                        loading: false,
+                        canGoBack: false,
+                        canGoForward: false
+                    };
+                    this.tabs.set(tabId, tab);
+                    this.activeTabId = tabId;
+                } catch (err) {
+                    console.error('Failed to create native tab:', err);
+                    // Fallback to web mode
+                    this.createWebTab();
+                }
+            } else {
+                // Web mode fallback
+                this.createWebTab();
+            }
             
             // Render the tab
             this.renderTabs();
@@ -54,6 +69,23 @@ class PrivacyBrowser {
         } catch (error) {
             console.error('Failed to initialize browser:', error);
         }
+    }
+
+    createWebTab() {
+        // Create a web mode tab (fallback)
+        const tabId = 'web-tab-' + Date.now();
+        const tab = {
+            id: tabId,
+            title: 'New Tab',
+            url: 'about:blank',
+            loading: false,
+            canGoBack: false,
+            canGoForward: false
+        };
+        this.tabs.set(tabId, tab);
+        this.activeTabId = tabId;
+        console.log('Force created tab:', tabId);
+        console.log('Active tab is now:', this.activeTabId);
     }
 
     initializeEventListeners() {
