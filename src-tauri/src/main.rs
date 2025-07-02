@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use tauri::{
-    Manager, Window, WindowBuilder, WindowUrl, 
+    Manager, WindowBuilder, WindowUrl, 
     generate_context, generate_handler,
     AppHandle
 };
@@ -172,9 +172,9 @@ async fn navigate_tab(tab_id: String, url: String, app_handle: AppHandle, state:
         // Navigate the window
         if let Some(window) = app_handle.get_window(&tab.window_label) {
             let parsed_url = if url.starts_with("http://") || url.starts_with("https://") {
-                url
+                url.clone()
             } else if url == "about:blank" {
-                url
+                url.clone()
             } else {
                 format!("https://{}", url)
             };
