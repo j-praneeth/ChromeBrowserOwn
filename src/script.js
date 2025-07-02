@@ -458,7 +458,22 @@ class PrivacyBrowser {
 
         } catch (error) {
             console.error('Navigation failed:', error);
-            this.showErrorPage(error.message);
+            try {
+                this.showErrorPage(error.message || 'Unknown error occurred');
+            } catch (e) {
+                console.error('Failed to show error page:', e);
+                // Fallback: just show a simple message in content area
+                const contentArea = document.getElementById('content-area');
+                if (contentArea) {
+                    contentArea.innerHTML = `
+                        <div style="padding: 40px; text-align: center;">
+                            <h3>Navigation Error</h3>
+                            <p>Unable to navigate to the requested page.</p>
+                            <p>Error: ${this.escapeHtml(error.message || 'Unknown error')}</p>
+                        </div>
+                    `;
+                }
+            }
         }
     }
 
@@ -712,16 +727,29 @@ class PrivacyBrowser {
     }
 
     showStartPage() {
-        document.getElementById('start-page').classList.add('active');
-        document.getElementById('address-bar').value = '';
+        const startPage = document.getElementById('start-page');
+        const addressBar = document.getElementById('address-bar');
+        if (startPage) {
+            startPage.classList.add('active');
+        }
+        if (addressBar) {
+            addressBar.value = '';
+        }
     }
 
     hideStartPage() {
-        document.getElementById('start-page').classList.remove('active');
+        const startPage = document.getElementById('start-page');
+        if (startPage) {
+            startPage.classList.remove('active');
+        }
     }
 
     showBlockedPage(url) {
         const startPage = document.getElementById('start-page');
+        if (!startPage) {
+            console.error('Could not find start-page element');
+            return;
+        }
         startPage.innerHTML = `
             <div class="start-page-content">
                 <div class="logo">
@@ -745,6 +773,10 @@ class PrivacyBrowser {
 
     showErrorPage(error) {
         const startPage = document.getElementById('start-page');
+        if (!startPage) {
+            console.error('Could not find start-page element');
+            return;
+        }
         startPage.innerHTML = `
             <div class="start-page-content">
                 <div class="logo">
