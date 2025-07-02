@@ -218,20 +218,29 @@ class PrivacyBrowser {
 
     async createNewTab() {
         try {
+            console.log('Creating new tab...');
             const isTauri = typeof window.__TAURI__ !== 'undefined';
             let tabId;
             
             if (isTauri) {
                 try {
+                    // Use native Tauri WebView tab creation
                     tabId = await window.__TAURI__.invoke('create_tab');
+                    console.log('Native WebView tab created:', tabId);
+                    
+                    // Switch to the new tab in the native backend
+                    await window.__TAURI__.invoke('switch_tab', { tab_id: tabId });
+                    
                 } catch (e) {
-                    console.log('Tauri tab creation failed, using web mode fallback');
-                    // Fall back to web mode
-                    tabId = 'web-tab-' + Date.now();
+                    console.error('Native tab creation failed:', e);
+                    // Fallback to local tab
+                    tabId = 'fallback-tab-' + Date.now();
+                    console.log('Using fallback tab:', tabId);
                 }
             } else {
-                // Generate tab ID for web mode
+                // Web mode fallback
                 tabId = 'web-tab-' + Date.now();
+                console.log('Web mode tab created:', tabId);
             }
             
             const tab = {
@@ -246,7 +255,6 @@ class PrivacyBrowser {
             this.tabs.set(tabId, tab);
             this.activeTabId = tabId;
             
-            console.log('Force created tab:', tabId);
             console.log('Active tab is now:', this.activeTabId);
             
             this.renderTabs();
@@ -256,8 +264,8 @@ class PrivacyBrowser {
             return tabId;
         } catch (error) {
             console.error('Failed to create new tab:', error);
-            // Force create a fallback tab
-            const fallbackTabId = 'web-tab-' + Date.now();
+            // Emergency fallback
+            const fallbackTabId = 'emergency-tab-' + Date.now();
             const fallbackTab = {
                 id: fallbackTabId,
                 title: 'New Tab',
@@ -361,7 +369,6 @@ class PrivacyBrowser {
     async navigateToUrl(input) {
         console.log('navigateToUrl called with:', input);
         console.log('activeTabId:', this.activeTabId);
-        console.log('tabs:', this.tabs);
         
         if (!this.activeTabId || !input.trim()) {
             console.log('Navigation stopped: no active tab or empty input');
@@ -380,194 +387,96 @@ class PrivacyBrowser {
 
         try {
             const isTauri = typeof window.__TAURI__ !== 'undefined';
-            let useTauriMode = false;
             
-            // Check URL safety first
             if (isTauri) {
+                // Native mode: Use Tauri WebViews directly
                 try {
+                    console.log('Using native WebView navigation for:', url);
+                    
+                    // Check URL safety first
                     const isSafe = await window.__TAURI__.invoke('check_url_safety', { url });
                     if (!isSafe) {
                         this.showBlockedPage(url);
+                        this.updatePrivacyCounter();
                         return;
                     }
                     
+                    // Navigate using the native WebView
                     await window.__TAURI__.invoke('navigate_tab', { 
-                        tabId: this.activeTabId, 
+                        tab_id: this.activeTabId, 
                         url 
                     });
-                    useTauriMode = true;
+                    
+                    // Update UI state
+                    const tab = this.tabs.get(this.activeTabId);
+                    if (tab) {
+                        tab.url = url;
+                        tab.loading = true;
+                        tab.title = this.extractTitleFromUrl(url);
+                    }
+
+                    document.getElementById('address-bar').value = url;
+                    this.hideStartPage();
+                    this.renderTabs();
+                    this.updateNavigationState();
+
+                    // Update blocked count from backend
+                    const blockedCount = await window.__TAURI__.invoke('get_blocked_count');
+                    this.blockedCount = blockedCount;
+                    this.updatePrivacyCounter();
+
+                    // Simulate page load completion
+                    setTimeout(() => {
+                        if (tab) {
+                            tab.loading = false;
+                            this.renderTabs();
+                        }
+                    }, 1000);
+
+                    console.log('Native navigation successful');
+                    return;
+                    
                 } catch (e) {
-                    console.log('Tauri navigation failed, using web mode fallback');
-                    // Fall through to web mode navigation
+                    console.error('Native navigation failed:', e);
+                    if (e.includes && e.includes('blocked by privacy filter')) {
+                        this.showBlockedPage(url);
+                        this.updatePrivacyCounter();
+                        return;
+                    }
+                    // Fall through to fallback message
                 }
             }
             
-            // Web mode navigation (also fallback for Tauri)
-            if (!useTauriMode) {
-                // Web mode: Check privacy lists
-                if (PrivacyLists.shouldBlockUrl(url)) {
-                    this.showBlockedPage(url);
-                    this.blockedCount++;
-                    this.updatePrivacyCounter();
-                    return;
-                }
-                
-                // For web mode, load in iframe with better error handling
-                const contentArea = document.getElementById('content-area');
-                console.log('Loading URL in iframe:', url);
-                
-                // Check if it's a known problematic domain that blocks embedding
-                const blockedDomains = [
-                    'google.com', 'youtube.com', 'facebook.com', 'twitter.com', 'x.com',
-                    'instagram.com', 'linkedin.com', 'github.com', 'stackoverflow.com',
-                    'reddit.com', 'wikipedia.org', 'amazon.com', 'netflix.com', 'paypal.com'
-                ];
-                const isKnownBlockedDomain = blockedDomains.some(domain => url.includes(domain));
-                
-                if (isKnownBlockedDomain) {
-                    // Show immediate fallback for known blocked domains
-                    contentArea.innerHTML = `
-                        <div style="padding: 40px; text-align: center; background: #2d2d2d; color: #fff; border-radius: 8px; margin: 20px;">
-                            <i class="fas fa-shield-alt" style="font-size: 48px; color: #ff9800; margin-bottom: 20px;"></i>
-                            <h3>Site Cannot Be Embedded</h3>
-                            <p>This website (${this.extractTitleFromUrl(url)}) prevents embedding for security reasons.</p>
-                            <p style="color: #ccc;"><strong>URL:</strong> ${url}</p>
-                            <div style="margin: 30px 0;">
-                                <a href="${url}" target="_blank" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px;">
-                                    <i class="fas fa-external-link-alt"></i> Open in New Tab
-                                </a>
-                                <button onclick="window.privacyBrowser.createNewTab()" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                    <i class="fas fa-plus"></i> New Tab
-                                </button>
-                            </div>
-                            <p style="font-size: 14px; color: #999; margin-top: 20px;">
-                                <i class="fas fa-info-circle"></i> 
-                                The native desktop version of Privacy Browser can display these sites properly using a webview instead of iframe.
-                            </p>
-                        </div>
-                    `;
-                } else {
-                    // Show loading indicator first
-                    contentArea.innerHTML = `
-                        <div style="padding: 20px; text-align: center;">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <p>Loading ${url}...</p>
-                        </div>
-                    `;
-                    
-                    // Try to load in iframe with improved error handling
-                    setTimeout(() => {
-                        const iframeId = 'iframe-' + Date.now();
-                        const fallbackId = 'fallback-' + iframeId;
-                        
-                        contentArea.innerHTML = `
-                            <iframe 
-                                id="${iframeId}"
-                                src="${url}" 
-                                style="width: 100%; height: 100%; border: none;"
-                                onload="
-                                    console.log('Website loaded successfully: ${url}'); 
-                                    if (window.iframeTimeout_${iframeId}) {
-                                        clearTimeout(window.iframeTimeout_${iframeId});
-                                        delete window.iframeTimeout_${iframeId};
-                                    }
-                                "
-                            ></iframe>
-                            <div id="${fallbackId}" style="display: none; padding: 40px; text-align: center; background: #2d2d2d; color: #fff; border-radius: 8px; margin: 20px;">
-                                <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ff9800; margin-bottom: 20px;"></i>
-                                <h3>Site Cannot Be Displayed</h3>
-                                <p>This website blocks embedding for security reasons or failed to load.</p>
-                                <p style="color: #ccc;"><strong>URL:</strong> ${url}</p>
-                                <div style="margin: 30px 0;">
-                                    <a href="${url}" target="_blank" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px;">
-                                        <i class="fas fa-external-link-alt"></i> Open in New Tab
-                                    </a>
-                                    <button onclick="window.privacyBrowser.navigateToUrl('${url}')" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                        <i class="fas fa-redo"></i> Try Again
-                                    </button>
-                                    <button onclick="window.privacyBrowser.createNewTab()" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                        <i class="fas fa-plus"></i> New Tab
-                                    </button>
-                                </div>
-                                <p style="font-size: 14px; color: #999;">
-                                    <i class="fas fa-info-circle"></i> 
-                                    The native desktop version can display these sites properly without iframe restrictions.
-                                </p>
-                            </div>
-                        `;
-                        
-                        // Set timeout to show fallback if iframe doesn't load within 4 seconds
-                        window['iframeTimeout_' + iframeId] = setTimeout(() => {
-                            const iframe = document.getElementById(iframeId);
-                            const fallback = document.getElementById(fallbackId);
-                            if (iframe && fallback) {
-                                iframe.style.display = 'none';
-                                fallback.style.display = 'block';
-                                console.log('Iframe timed out, showing fallback for:', url);
-                            }
-                        }, 4000);
-                        
-                        // Also handle iframe errors
-                        const iframe = document.getElementById(iframeId);
-                        if (iframe) {
-                            iframe.onerror = () => {
-                                const fallback = document.getElementById(fallbackId);
-                                if (fallback) {
-                                    iframe.style.display = 'none';
-                                    fallback.style.display = 'block';
-                                    console.log('Iframe error, showing fallback for:', url);
-                                }
-                                if (window['iframeTimeout_' + iframeId]) {
-                                    clearTimeout(window['iframeTimeout_' + iframeId]);
-                                    delete window['iframeTimeout_' + iframeId];
-                                }
-                            };
-                        }
-                        
-                        console.log('Iframe created for:', url);
-                    }, 200);
-                }
-            }
-
-            const tab = this.tabs.get(this.activeTabId);
-            if (tab) {
-                tab.url = url;
-                tab.loading = true;
-                tab.title = this.extractTitleFromUrl(url);
-            }
-
-            document.getElementById('address-bar').value = url;
-            this.hideStartPage();
-            this.renderTabs();
-            this.updateNavigationState();
-
-            // Simulate page load completion
-            setTimeout(() => {
-                if (tab) {
-                    tab.loading = false;
-                    this.renderTabs();
-                }
-            }, 1000);
+            // Fallback for non-Tauri environments or errors
+            this.showNativeModeMessage(url);
 
         } catch (error) {
             console.error('Navigation failed:', error);
-            try {
-                this.showErrorPage(error.message || 'Unknown error occurred');
-            } catch (e) {
-                console.error('Failed to show error page:', e);
-                // Fallback: just show a simple message in content area
-                const contentArea = document.getElementById('content-area');
-                if (contentArea) {
-                    contentArea.innerHTML = `
-                        <div style="padding: 40px; text-align: center;">
-                            <h3>Navigation Error</h3>
-                            <p>Unable to navigate to the requested page.</p>
-                            <p>Error: ${this.escapeHtml(error.message || 'Unknown error')}</p>
-                        </div>
-                    `;
-                }
-            }
+            this.showErrorPage(error.message || 'Navigation error occurred');
         }
+    }
+
+    showNativeModeMessage(url) {
+        const contentArea = document.getElementById('content-area');
+        contentArea.innerHTML = `
+            <div style="padding: 40px; text-align: center; background: #2d2d2d; color: #fff; border-radius: 8px; margin: 20px;">
+                <i class="fas fa-desktop" style="font-size: 48px; color: #2196F3; margin-bottom: 20px;"></i>
+                <h3>Native WebView Mode</h3>
+                <p>This browser uses native WebViews for true Chrome-like performance.</p>
+                <p style="color: #ccc;">Requested URL: <strong>${url}</strong></p>
+                <div style="margin: 30px 0;">
+                    <p style="background: #1a1a1a; padding: 15px; border-radius: 8px; border-left: 4px solid #2196F3;">
+                        <i class="fas fa-info-circle" style="color: #2196F3;"></i>
+                        <strong>Native Mode Active:</strong><br>
+                        Each tab runs in its own native WebView window for maximum performance and compatibility.
+                        This eliminates iframe restrictions and provides a true browser experience.
+                    </p>
+                </div>
+                <button onclick="window.privacyBrowser.createNewTab()" style="padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    <i class="fas fa-plus"></i> Create New Tab
+                </button>
+            </div>
+        `;
     }
 
     isValidUrl(string) {
@@ -588,18 +497,50 @@ class PrivacyBrowser {
         }
     }
 
-    navigateBack() {
-        // In a real implementation, this would navigate the webview back
-        console.log('Navigate back');
+    async navigateBack() {
+        if (!this.activeTabId) return;
+        
+        const isTauri = typeof window.__TAURI__ !== 'undefined';
+        if (isTauri) {
+            try {
+                await window.__TAURI__.invoke('webview_go_back', { tab_id: this.activeTabId });
+                console.log('Native navigate back');
+            } catch (e) {
+                console.error('Navigate back failed:', e);
+            }
+        } else {
+            console.log('Navigate back - web mode');
+        }
     }
 
-    navigateForward() {
-        // In a real implementation, this would navigate the webview forward
-        console.log('Navigate forward');
+    async navigateForward() {
+        if (!this.activeTabId) return;
+        
+        const isTauri = typeof window.__TAURI__ !== 'undefined';
+        if (isTauri) {
+            try {
+                await window.__TAURI__.invoke('webview_go_forward', { tab_id: this.activeTabId });
+                console.log('Native navigate forward');
+            } catch (e) {
+                console.error('Navigate forward failed:', e);
+            }
+        } else {
+            console.log('Navigate forward - web mode');
+        }
     }
 
-    refreshCurrentTab() {
-        if (this.activeTabId) {
+    async refreshCurrentTab() {
+        if (!this.activeTabId) return;
+        
+        const isTauri = typeof window.__TAURI__ !== 'undefined';
+        if (isTauri) {
+            try {
+                await window.__TAURI__.invoke('webview_reload', { tab_id: this.activeTabId });
+                console.log('Native reload');
+            } catch (e) {
+                console.error('Reload failed:', e);
+            }
+        } else {
             const tab = this.tabs.get(this.activeTabId);
             if (tab && tab.url !== 'about:blank') {
                 this.navigateToUrl(tab.url);

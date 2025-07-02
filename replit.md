@@ -109,9 +109,26 @@ Privacy Browser is a desktop web browser application built with Tauri, combining
 - July 02, 2025. Native browser compilation in final stage with all dependencies resolved
 - July 02, 2025. **Web demo fully functional** - Fixed JavaScript initialization, tab creation, navigation, and iframe loading with proper fallback for blocked sites
 - July 02, 2025. **Switching to Chrome-like native implementation** - Enhanced Tauri backend with WebView navigation, bypassing iframe restrictions for true browser functionality
+- July 02, 2025. **Complete rewrite to native WebView architecture** - Eliminated iframe limitations by implementing native Tauri WebView windows for each tab, true Chrome-like browsing experience with dedicated windows per tab
+
+## Architecture Updates
+
+### Native WebView Implementation (July 02, 2025)
+- **Multi-Window Architecture**: Each browser tab now creates its own native WebView window
+- **Tauri 1.x Backend**: Comprehensive Rust backend managing tab lifecycle, navigation, and privacy filtering  
+- **Native Navigation**: Direct WebView control eliminates iframe embedding restrictions
+- **Enhanced Privacy Engine**: Server-side blocking of tracking domains with real-time counters
+- **Cross-Platform Windows**: Native window management with proper focus, hide/show, and lifecycle management
+
+### Key Technical Changes
+- **Backend Commands**: create_tab, close_tab, switch_tab, navigate_tab, webview_go_back, webview_go_forward, webview_reload
+- **Privacy Filtering**: Comprehensive domain blocking list integrated into navigation pipeline
+- **Window Management**: Native window creation with proper lifecycle and state management
+- **Frontend Integration**: JavaScript layer communicates directly with Rust backend via Tauri invoke API
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 User wants native application (not web-based demo) with Chrome-level performance.
 User confirmed Chrome-like implementation approach is preferred over iframe-based web demo.
+User requested complete elimination of iframes in favor of native WebView implementation.

@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "identifier": "com.privacybrowser.desktop",
   "build": {
-    "beforeDevCommand": "",
     "beforeBuildCommand": "",
+    "beforeDevCommand": "",
     "frontendDist": "../src"
   },
   "app": {
