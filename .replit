@@ -1,4 +1,4 @@
-modules = ["rust"]
+modules = ["rust", "python-3.11"]
 
 [nix]
 channel = "stable-24_05"
@@ -15,6 +15,10 @@ author = "agent"
 task = "workflow.run"
 args = "Privacy Browser"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Browser Demo"
+
 [[workflows.workflow]]
 name = "Privacy Browser"
 author = "agent"
@@ -23,3 +27,16 @@ author = "agent"
 task = "shell.exec"
 args = "cd src-tauri && cargo tauri dev --port 5000"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Browser Demo"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python -m http.server 5000"
+waitForPort = 5000
+
+[[ports]]
+localPort = 5000
+externalPort = 80

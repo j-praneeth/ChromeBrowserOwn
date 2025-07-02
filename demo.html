@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Browser Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .browser-window {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #1a1a1a;
+        }
+
+        .window-controls {
+            height: 30px;
+            background: #2d2d2d;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .window-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .window-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+
+        .window-btn:first-child {
+            background: #ff5f57;
+        }
+
+        .window-btn:nth-child(2) {
+            background: #ffbd2e;
+        }
+
+        .window-btn:nth-child(3) {
+            background: #28ca42;
+        }
+
+        .tab-bar {
+            height: 40px;
+            background: #2d2d2d;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #404040;
+            padding: 0 10px;
+        }
+
+        .tab {
+            min-width: 200px;
+            height: 36px;
+            background: #1a1a1a;
+            border: 1px solid #666;
+            border-bottom: none;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            cursor: pointer;
+            margin-right: 2px;
+        }
+
+        .tab-title {
+            flex: 1;
+            font-size: 13px;
+            color: #fff;
+        }
+
+        .nav-bar {
+            height: 50px;
+            background: #2d2d2d;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 10px;
+            border-bottom: 1px solid #404040;
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-btn {
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: 1px solid #555;
+            color: #ccc;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn:hover {
+            background: #404040;
+            color: #fff;
+        }
+
+        .address-bar-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: #1a1a1a;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 0 12px;
+            height: 36px;
+        }
+
+        .security-indicator {
+            margin-right: 8px;
+            color: #4CAF50;
+            font-size: 14px;
+        }
+
+        .address-bar {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .address-bar::placeholder {
+            color: #888;
+        }
+
+        .privacy-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #4CAF50;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .blocked-count {
+            background: #4CAF50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1a1a1a;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            color: #4CAF50;
+            margin-bottom: 16px;
+        }
+
+        .demo-info {
+            max-width: 600px;
+            margin: 20px;
+        }
+
+        .demo-info h2 {
+            color: #4CAF50;
+            margin-bottom: 16px;
+        }
+
+        .demo-info p {
+            color: #ccc;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #404040;
+        }
+
+        .feature h3 {
+            color: #4CAF50;
+            margin-bottom: 8px;
+        }
+
+        .feature p {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .stats {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #404040;
+            margin: 20px 0;
+        }
+
+        .stats h3 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .stats ul {
+            color: #ccc;
+            text-align: left;
+        }
+
+        .stats li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="browser-window">
+        <!-- Window Controls -->
+        <div class="window-controls">
+            <div class="window-buttons">
+                <button class="window-btn"></button>
+                <button class="window-btn"></button>
+                <button class="window-btn"></button>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <div class="tab">
+                <div class="tab-title">Privacy Browser - Demo</div>
+            </div>
+        </div>
+
+        <!-- Navigation Bar -->
+        <div class="nav-bar">
+            <div class="nav-controls">
+                <button class="nav-btn">←</button>
+                <button class="nav-btn">→</button>
+                <button class="nav-btn">↻</button>
+            </div>
+            
+            <div class="address-bar-container">
+                <div class="security-indicator">🛡️</div>
+                <input type="text" class="address-bar" placeholder="privacy-browser://demo" readonly>
+                <div class="privacy-indicator">
+                    <span class="blocked-count">247</span>
+                    <span>🚫</span>
+                </div>
+            </div>
+            
+            <button class="nav-btn">⭐</button>
+            <button class="nav-btn">⋮</button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <div class="logo">🛡️</div>
+            
+            <div class="demo-info">
+                <h2>Cross-Platform Privacy Browser</h2>
+                <p>Built with <strong>Tauri (Rust + Web)</strong> - The perfect stack for your Chrome-speed privacy browser that works on both Windows and Mac.</p>
+                
+                <div class="features">
+                    <div class="feature">
+                        <h3>🚀 Native Performance</h3>
+                        <p>Rust backend with system webview delivers Chrome-like speed</p>
+                    </div>
+                    <div class="feature">
+                        <h3>🔒 Privacy First</h3>
+                        <p>Built-in ad & tracker blocking, no data collection</p>
+                    </div>
+                    <div class="feature">
+                        <h3>🌐 Cross-Platform</h3>
+                        <p>Single codebase runs on Windows, Mac, and Linux</p>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <h3>Technology Stack</h3>
+                    <ul>
+                        <li><strong>Backend:</strong> Rust (for speed & security)</li>
+                        <li><strong>Frontend:</strong> Vanilla HTML/CSS/JS (lightweight)</li>
+                        <li><strong>Framework:</strong> Tauri (2-15MB vs 100MB+ Electron)</li>
+                        <li><strong>Storage:</strong> SQLite (local bookmarks/history)</li>
+                        <li><strong>Privacy:</strong> 70+ tracking domains blocked</li>
+                        <li><strong>Performance:</strong> Uses native system webview</li>
+                        <li><strong>Bundle Size:</strong> ~5MB (vs 100MB+ Electron apps)</li>
+                    </ul>
+                </div>
+
+                <p><strong>Why Tauri beats Electron:</strong></p>
+                <p>✓ Faster startup (no Node.js overhead)<br>
+                ✓ Lower memory usage (native webview)<br>
+                ✓ Better security (Rust memory safety)<br>
+                ✓ Smaller downloads (no bundled Chromium)</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate privacy counter animation
+        let blockedCount = 247;
+        const counter = document.querySelector('.blocked-count');
+        
+        setInterval(() => {
+            if (Math.random() < 0.3) {
+                blockedCount++;
+                counter.textContent = blockedCount;
+            }
+        }, 2000);
+
+        // Add some interactivity
+        document.querySelector('.address-bar').addEventListener('click', () => {
+            alert('In the full app, this would navigate to URLs while blocking trackers and ads!');
+        });
+    </script>
+</body>
+</html>
