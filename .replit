@@ -19,6 +19,10 @@ args = "Privacy Browser"
 task = "workflow.run"
 args = "Browser Demo"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Privacy Browser Native"
+
 [[workflows.workflow]]
 name = "Privacy Browser"
 author = "agent"
@@ -36,6 +40,14 @@ author = "agent"
 task = "shell.exec"
 args = "python -m http.server 5000"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Privacy Browser Native"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd src-tauri && cargo run --release"
 
 [[ports]]
 localPort = 5000
