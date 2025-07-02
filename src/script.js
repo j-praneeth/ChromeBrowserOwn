@@ -17,7 +17,25 @@ class PrivacyBrowser {
             
             // Create initial tab
             console.log('Creating initial tab...');
-            await this.createNewTab();
+            
+            // Force create a tab for web mode
+            const tabId = 'web-tab-' + Date.now();
+            const tab = {
+                id: tabId,
+                title: 'New Tab',
+                url: 'about:blank',
+                loading: false,
+                canGoBack: false,
+                canGoForward: false
+            };
+            this.tabs.set(tabId, tab);
+            this.activeTabId = tabId;
+            console.log('Force created tab:', tabId);
+            console.log('Active tab is now:', this.activeTabId);
+            
+            // Render the tab
+            this.renderTabs();
+            this.updateNavigationState();
             
             // Load bookmarks
             console.log('Loading bookmarks...');
