@@ -353,16 +353,30 @@ class PrivacyBrowser {
                     return;
                 }
                 
-                // For web mode, show iframe or message
+                // For web mode, load in iframe
                 const contentArea = document.getElementById('content-area');
+                console.log('Loading URL in iframe:', url);
+                
+                // Show loading indicator first
                 contentArea.innerHTML = `
                     <div style="padding: 20px; text-align: center;">
-                        <h3>Privacy Browser - Web Demo</h3>
-                        <p>In native mode, this would navigate to: <strong>${url}</strong></p>
-                        <p>Privacy protection: ${privacyLists.shouldBlockUrl(url) ? 'BLOCKED' : 'ALLOWED'}</p>
-                        <p>Build the native app for full browsing capabilities!</p>
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading ${url}...</p>
                     </div>
                 `;
+                
+                // Load the website in an iframe after a brief delay
+                setTimeout(() => {
+                    contentArea.innerHTML = `
+                        <iframe 
+                            src="${url}" 
+                            style="width: 100%; height: 100%; border: none;"
+                            onload="console.log('Website loaded successfully: ${url}')"
+                            onerror="console.error('Failed to load website in iframe: ${url}')"
+                        ></iframe>
+                    `;
+                    console.log('Iframe created for:', url);
+                }, 200);
             }
 
             const tab = this.tabs.get(this.activeTabId);
