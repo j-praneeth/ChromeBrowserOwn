@@ -1,8 +1,8 @@
-modules = ["rust", "python-3.11"]
+modules = ["rust", "python-3.11", "nodejs-20"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["pkg-config", "glib", "gtk3", "webkitgtk", "openssl", "imagemagick", "zlib"]
+packages = ["pkg-config", "glib", "gtk3", "webkitgtk", "openssl", "imagemagick", "zlib", "zlib-ng", "cmake"]
 
 [workflows]
 runButton = "Project"
@@ -48,7 +48,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd src-tauri && cargo run --release"
+args = "cd src-tauri && PKG_CONFIG_PATH=\"/nix/store/*/lib/pkgconfig:$PKG_CONFIG_PATH\" npx tauri build"
 
 [[ports]]
 localPort = 5000
