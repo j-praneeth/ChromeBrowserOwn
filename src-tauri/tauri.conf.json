@@ -2,7 +2,9 @@
   "build": {
     "beforeDevCommand": "",
     "beforeBuildCommand": "",
-    "frontendDist": "../src"
+    "devPath": "../src",
+    "distDir": "../src",
+    "withGlobalTauri": false
   },
   "package": {
     "productName": "Privacy Browser",
