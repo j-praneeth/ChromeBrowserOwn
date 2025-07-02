@@ -93,6 +93,7 @@ class PrivacyBrowser {
         const addressBar = document.getElementById('address-bar');
         addressBar.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
+                console.log('Address bar enter pressed, value:', addressBar.value);
                 this.navigateToUrl(addressBar.value);
             }
         });
@@ -316,7 +317,14 @@ class PrivacyBrowser {
     }
 
     async navigateToUrl(input) {
-        if (!this.activeTabId || !input.trim()) return;
+        console.log('navigateToUrl called with:', input);
+        console.log('activeTabId:', this.activeTabId);
+        console.log('tabs:', this.tabs);
+        
+        if (!this.activeTabId || !input.trim()) {
+            console.log('Navigation stopped: no active tab or empty input');
+            return;
+        }
 
         let url = input.trim();
         
