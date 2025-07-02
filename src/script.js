@@ -31,22 +31,36 @@ class PrivacyBrowser {
     }
 
     initializeEventListeners() {
-        // Window controls
+        // Window controls - check if Tauri is available
+        const isTauri = typeof window.__TAURI__ !== 'undefined';
+        
         document.getElementById('minimize-btn').addEventListener('click', () => {
-            window.__TAURI__.window.appWindow.minimize();
+            if (isTauri) {
+                window.__TAURI__.window.appWindow.minimize();
+            } else {
+                console.log('Minimize clicked (web mode)');
+            }
         });
 
         document.getElementById('maximize-btn').addEventListener('click', async () => {
-            const isMaximized = await window.__TAURI__.window.appWindow.isMaximized();
-            if (isMaximized) {
-                window.__TAURI__.window.appWindow.unmaximize();
+            if (isTauri) {
+                const isMaximized = await window.__TAURI__.window.appWindow.isMaximized();
+                if (isMaximized) {
+                    window.__TAURI__.window.appWindow.unmaximize();
+                } else {
+                    window.__TAURI__.window.appWindow.maximize();
+                }
             } else {
-                window.__TAURI__.window.appWindow.maximize();
+                console.log('Maximize clicked (web mode)');
             }
         });
 
         document.getElementById('close-btn').addEventListener('click', () => {
-            window.__TAURI__.window.appWindow.close();
+            if (isTauri) {
+                window.__TAURI__.window.appWindow.close();
+            } else {
+                console.log('Close clicked (web mode)');
+            }
         });
 
         // Tab management
@@ -177,7 +191,15 @@ class PrivacyBrowser {
 
     async createNewTab() {
         try {
-            const tabId = await window.__TAURI__.invoke('create_tab');
+            const isTauri = typeof window.__TAURI__ !== 'undefined';
+            let tabId;
+            
+            if (isTauri) {
+                tabId = await window.__TAURI__.invoke('create_tab');
+            } else {
+                // Generate tab ID for web mode
+                tabId = 'tab-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            }
             
             const tab = {
                 id: tabId,
@@ -295,17 +317,41 @@ class PrivacyBrowser {
         }
 
         try {
+            const isTauri = typeof window.__TAURI__ !== 'undefined';
+            
             // Check URL safety first
-            const isSafe = await window.__TAURI__.invoke('check_url_safety', { url });
-            if (!isSafe) {
-                this.showBlockedPage(url);
-                return;
+            if (isTauri) {
+                const isSafe = await window.__TAURI__.invoke('check_url_safety', { url });
+                if (!isSafe) {
+                    this.showBlockedPage(url);
+                    return;
+                }
+                
+                await window.__TAURI__.invoke('navigate_tab', { 
+                    tabId: this.activeTabId, 
+                    url 
+                });
+            } else {
+                // Web mode: Check privacy lists
+                const privacyLists = new PrivacyLists();
+                if (privacyLists.shouldBlockUrl(url)) {
+                    this.showBlockedPage(url);
+                    this.blockedCount++;
+                    this.updatePrivacyCounter();
+                    return;
+                }
+                
+                // For web mode, show iframe or message
+                const contentArea = document.getElementById('content-area');
+                contentArea.innerHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3>Privacy Browser - Web Demo</h3>
+                        <p>In native mode, this would navigate to: <strong>${url}</strong></p>
+                        <p>Privacy protection: ${privacyLists.shouldBlockUrl(url) ? 'BLOCKED' : 'ALLOWED'}</p>
+                        <p>Build the native app for full browsing capabilities!</p>
+                    </div>
+                `;
             }
-
-            await window.__TAURI__.invoke('navigate_tab', { 
-                tabId: this.activeTabId, 
-                url 
-            });
 
             const tab = this.tabs.get(this.activeTabId);
             if (tab) {
@@ -391,10 +437,22 @@ class PrivacyBrowser {
         if (!tab || tab.url === 'about:blank') return;
 
         try {
-            await window.__TAURI__.invoke('add_bookmark', {
-                url: tab.url,
-                title: tab.title
-            });
+            const isTauri = typeof window.__TAURI__ !== 'undefined';
+            
+            if (isTauri) {
+                await window.__TAURI__.invoke('add_bookmark', {
+                    url: tab.url,
+                    title: tab.title
+                });
+            } else {
+                // Web mode: Use localStorage
+                this.bookmarks.push({
+                    url: tab.url,
+                    title: tab.title,
+                    id: Date.now()
+                });
+                localStorage.setItem('privacyBrowserBookmarks', JSON.stringify(this.bookmarks));
+            }
 
             await this.loadBookmarks();
             this.showNotification('Bookmark added successfully');
@@ -407,10 +465,20 @@ class PrivacyBrowser {
 
     async loadBookmarks() {
         try {
-            this.bookmarks = await window.__TAURI__.invoke('get_bookmarks');
+            const isTauri = typeof window.__TAURI__ !== 'undefined';
+            
+            if (isTauri) {
+                this.bookmarks = await window.__TAURI__.invoke('get_bookmarks');
+            } else {
+                // Web mode: Load from localStorage
+                const saved = localStorage.getItem('privacyBrowserBookmarks');
+                this.bookmarks = saved ? JSON.parse(saved) : [];
+            }
+            
             this.renderBookmarks();
         } catch (error) {
             console.error('Failed to load bookmarks:', error);
+            this.bookmarks = [];
         }
     }
 

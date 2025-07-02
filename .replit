@@ -2,7 +2,7 @@ modules = ["rust", "python-3.11"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["pkg-config", "glib", "gtk3", "webkitgtk", "openssl", "imagemagick"]
+packages = ["pkg-config", "glib", "gtk3", "webkitgtk", "openssl", "imagemagick", "zlib"]
 
 [workflows]
 runButton = "Project"
@@ -39,7 +39,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python -m http.server 5000"
+args = "python -m http.server 5000 --directory src"
 waitForPort = 5000
 
 [[workflows.workflow]]
