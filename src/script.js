@@ -13,17 +13,25 @@ class PrivacyBrowser {
 
     async initializeBrowser() {
         try {
+            console.log('Initializing Privacy Browser...');
+            
             // Create initial tab
+            console.log('Creating initial tab...');
             await this.createNewTab();
             
             // Load bookmarks
+            console.log('Loading bookmarks...');
             await this.loadBookmarks();
             
             // Update privacy counter
+            console.log('Updating privacy counter...');
             this.updatePrivacyCounter();
             
             // Show start page
+            console.log('Showing start page...');
             this.showStartPage();
+            
+            console.log('Privacy Browser initialized successfully!');
             
         } catch (error) {
             console.error('Failed to initialize browser:', error);
@@ -225,7 +233,11 @@ class PrivacyBrowser {
 
     async closeTab(tabId) {
         try {
-            await window.__TAURI__.invoke('close_tab', { tabId });
+            const isTauri = typeof window.__TAURI__ !== 'undefined';
+            
+            if (isTauri) {
+                await window.__TAURI__.invoke('close_tab', { tabId });
+            }
             
             this.tabs.delete(tabId);
             
@@ -746,3 +758,9 @@ if (window.__TAURI__) {
         window.__TAURI__.window.appWindow.close();
     });
 }
+
+// Initialize the browser when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, starting Privacy Browser...');
+    window.privacyBrowser = new PrivacyBrowser();
+});
