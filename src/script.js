@@ -222,10 +222,16 @@ class PrivacyBrowser {
             let tabId;
             
             if (isTauri) {
-                tabId = await window.__TAURI__.invoke('create_tab');
+                try {
+                    tabId = await window.__TAURI__.invoke('create_tab');
+                } catch (e) {
+                    console.log('Tauri tab creation failed, using web mode fallback');
+                    // Fall back to web mode
+                    tabId = 'web-tab-' + Date.now();
+                }
             } else {
                 // Generate tab ID for web mode
-                tabId = 'tab-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                tabId = 'web-tab-' + Date.now();
             }
             
             const tab = {
@@ -240,6 +246,9 @@ class PrivacyBrowser {
             this.tabs.set(tabId, tab);
             this.activeTabId = tabId;
             
+            console.log('Force created tab:', tabId);
+            console.log('Active tab is now:', this.activeTabId);
+            
             this.renderTabs();
             this.updateNavigationState();
             this.showStartPage();
@@ -247,6 +256,21 @@ class PrivacyBrowser {
             return tabId;
         } catch (error) {
             console.error('Failed to create new tab:', error);
+            // Force create a fallback tab
+            const fallbackTabId = 'web-tab-' + Date.now();
+            const fallbackTab = {
+                id: fallbackTabId,
+                title: 'New Tab',
+                url: 'about:blank',
+                loading: false,
+                canGoBack: false,
+                canGoForward: false
+            };
+            this.tabs.set(fallbackTabId, fallbackTab);
+            this.activeTabId = fallbackTabId;
+            this.renderTabs();
+            this.showStartPage();
+            return fallbackTabId;
         }
     }
 
@@ -356,6 +380,7 @@ class PrivacyBrowser {
 
         try {
             const isTauri = typeof window.__TAURI__ !== 'undefined';
+            let useTauriMode = false;
             
             // Check URL safety first
             if (isTauri) {
@@ -370,6 +395,7 @@ class PrivacyBrowser {
                         tabId: this.activeTabId, 
                         url 
                     });
+                    useTauriMode = true;
                 } catch (e) {
                     console.log('Tauri navigation failed, using web mode fallback');
                     // Fall through to web mode navigation
@@ -377,7 +403,7 @@ class PrivacyBrowser {
             }
             
             // Web mode navigation (also fallback for Tauri)
-            if (!isTauri || true) {
+            if (!useTauriMode) {
                 // Web mode: Check privacy lists
                 if (PrivacyLists.shouldBlockUrl(url)) {
                     this.showBlockedPage(url);
@@ -390,18 +416,22 @@ class PrivacyBrowser {
                 const contentArea = document.getElementById('content-area');
                 console.log('Loading URL in iframe:', url);
                 
-                // Check if it's a known problematic domain
-                const blockedDomains = ['google.com', 'youtube.com', 'facebook.com', 'twitter.com', 'instagram.com', 'linkedin.com'];
-                const isBlockedDomain = blockedDomains.some(domain => url.includes(domain));
+                // Check if it's a known problematic domain that blocks embedding
+                const blockedDomains = [
+                    'google.com', 'youtube.com', 'facebook.com', 'twitter.com', 'x.com',
+                    'instagram.com', 'linkedin.com', 'github.com', 'stackoverflow.com',
+                    'reddit.com', 'wikipedia.org', 'amazon.com', 'netflix.com', 'paypal.com'
+                ];
+                const isKnownBlockedDomain = blockedDomains.some(domain => url.includes(domain));
                 
-                if (isBlockedDomain) {
+                if (isKnownBlockedDomain) {
                     // Show immediate fallback for known blocked domains
                     contentArea.innerHTML = `
-                        <div style="padding: 40px; text-align: center; background: #f5f5f5;">
+                        <div style="padding: 40px; text-align: center; background: #2d2d2d; color: #fff; border-radius: 8px; margin: 20px;">
                             <i class="fas fa-shield-alt" style="font-size: 48px; color: #ff9800; margin-bottom: 20px;"></i>
                             <h3>Site Cannot Be Embedded</h3>
                             <p>This website (${this.extractTitleFromUrl(url)}) prevents embedding for security reasons.</p>
-                            <p><strong>URL:</strong> ${url}</p>
+                            <p style="color: #ccc;"><strong>URL:</strong> ${url}</p>
                             <div style="margin: 30px 0;">
                                 <a href="${url}" target="_blank" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px;">
                                     <i class="fas fa-external-link-alt"></i> Open in New Tab
@@ -410,7 +440,7 @@ class PrivacyBrowser {
                                     <i class="fas fa-plus"></i> New Tab
                                 </button>
                             </div>
-                            <p style="font-size: 14px; color: #666; margin-top: 20px;">
+                            <p style="font-size: 14px; color: #999; margin-top: 20px;">
                                 <i class="fas fa-info-circle"></i> 
                                 The native desktop version of Privacy Browser can display these sites properly using a webview instead of iframe.
                             </p>
@@ -425,22 +455,29 @@ class PrivacyBrowser {
                         </div>
                     `;
                     
-                    // Try to load in iframe with error handling
+                    // Try to load in iframe with improved error handling
                     setTimeout(() => {
                         const iframeId = 'iframe-' + Date.now();
+                        const fallbackId = 'fallback-' + iframeId;
+                        
                         contentArea.innerHTML = `
                             <iframe 
                                 id="${iframeId}"
                                 src="${url}" 
                                 style="width: 100%; height: 100%; border: none;"
-                                onload="console.log('Website loaded successfully: ${url}'); clearTimeout(window.iframeTimeout_${iframeId});"
-                                onerror="document.getElementById('fallback-${iframeId}').style.display = 'block'; this.style.display = 'none';"
+                                onload="
+                                    console.log('Website loaded successfully: ${url}'); 
+                                    if (window.iframeTimeout_${iframeId}) {
+                                        clearTimeout(window.iframeTimeout_${iframeId});
+                                        delete window.iframeTimeout_${iframeId};
+                                    }
+                                "
                             ></iframe>
-                            <div id="fallback-${iframeId}" style="display: none; padding: 40px; text-align: center; background: #f5f5f5;">
+                            <div id="${fallbackId}" style="display: none; padding: 40px; text-align: center; background: #2d2d2d; color: #fff; border-radius: 8px; margin: 20px;">
                                 <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ff9800; margin-bottom: 20px;"></i>
                                 <h3>Site Cannot Be Displayed</h3>
                                 <p>This website blocks embedding for security reasons or failed to load.</p>
-                                <p><strong>URL:</strong> ${url}</p>
+                                <p style="color: #ccc;"><strong>URL:</strong> ${url}</p>
                                 <div style="margin: 30px 0;">
                                     <a href="${url}" target="_blank" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px;">
                                         <i class="fas fa-external-link-alt"></i> Open in New Tab
@@ -448,24 +485,44 @@ class PrivacyBrowser {
                                     <button onclick="window.privacyBrowser.navigateToUrl('${url}')" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer;">
                                         <i class="fas fa-redo"></i> Try Again
                                     </button>
+                                    <button onclick="window.privacyBrowser.createNewTab()" style="display: inline-block; margin: 10px; padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                        <i class="fas fa-plus"></i> New Tab
+                                    </button>
                                 </div>
-                                <p style="font-size: 14px; color: #666;">
+                                <p style="font-size: 14px; color: #999;">
                                     <i class="fas fa-info-circle"></i> 
-                                    The native app version would display this properly without restrictions.
+                                    The native desktop version can display these sites properly without iframe restrictions.
                                 </p>
                             </div>
                         `;
                         
-                        // Set timeout to show fallback if iframe doesn't load
+                        // Set timeout to show fallback if iframe doesn't load within 4 seconds
                         window['iframeTimeout_' + iframeId] = setTimeout(() => {
                             const iframe = document.getElementById(iframeId);
-                            const fallback = document.getElementById('fallback-' + iframeId);
-                            if (iframe && fallback && iframe.style.display !== 'none') {
+                            const fallback = document.getElementById(fallbackId);
+                            if (iframe && fallback) {
                                 iframe.style.display = 'none';
                                 fallback.style.display = 'block';
-                                console.log('Iframe failed to load, showing fallback for:', url);
+                                console.log('Iframe timed out, showing fallback for:', url);
                             }
-                        }, 3000); // Reduced timeout to 3 seconds
+                        }, 4000);
+                        
+                        // Also handle iframe errors
+                        const iframe = document.getElementById(iframeId);
+                        if (iframe) {
+                            iframe.onerror = () => {
+                                const fallback = document.getElementById(fallbackId);
+                                if (fallback) {
+                                    iframe.style.display = 'none';
+                                    fallback.style.display = 'block';
+                                    console.log('Iframe error, showing fallback for:', url);
+                                }
+                                if (window['iframeTimeout_' + iframeId]) {
+                                    clearTimeout(window['iframeTimeout_' + iframeId]);
+                                    delete window['iframeTimeout_' + iframeId];
+                                }
+                            };
+                        }
                         
                         console.log('Iframe created for:', url);
                     }, 200);
