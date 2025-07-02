@@ -113,3 +113,4 @@ Privacy Browser is a desktop web browser application built with Tauri, combining
 
 Preferred communication style: Simple, everyday language.
 User wants native application (not web-based demo) with Chrome-level performance.
+User confirmed Chrome-like implementation approach is preferred over iframe-based web demo.
