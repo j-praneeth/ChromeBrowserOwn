@@ -1,10 +1,10 @@
 {
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
-    "beforeDevCommand": "",
     "beforeBuildCommand": "",
+    "beforeDevCommand": "",
     "devPath": "../src",
-    "distDir": "../src",
-    "withGlobalTauri": false
+    "distDir": "../src"
   },
   "package": {
     "productName": "Privacy Browser",
