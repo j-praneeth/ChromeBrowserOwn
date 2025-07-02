@@ -379,8 +379,7 @@ class PrivacyBrowser {
             // Web mode navigation (also fallback for Tauri)
             if (!isTauri || true) {
                 // Web mode: Check privacy lists
-                const privacyLists = new PrivacyLists();
-                if (privacyLists.shouldBlockUrl(url)) {
+                if (PrivacyLists.shouldBlockUrl(url)) {
                     this.showBlockedPage(url);
                     this.blockedCount++;
                     this.updatePrivacyCounter();
